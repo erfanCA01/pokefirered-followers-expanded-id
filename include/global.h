@@ -1,6 +1,10 @@
 #ifndef GUARD_GLOBAL_H
 #define GUARD_GLOBAL_H
 
+// Enable Fixes during compilation
+#define BUGFIX
+#define UBFIX
+
 #include "config.h"
 #include "gba/gba.h"
 #include <string.h>
