@@ -183,3 +183,16 @@ Ported the follower graphics data and animation commands. Build passes.
 - `LoadDynamicFollowerPalette` (dynamic species palettes) — next chunk.
 - Follower spawn/despawn engine (field_player_avatar, event_object_movement follower
   functions, follower_helper.c) — Stage 4.
+
+---
+
+## Stage 4 — Part 1: follower engine infrastructure ✅
+
+- `MOVEMENT_TYPE_FOLLOW_PLAYER 0x51` (`constants/event_object_movement.h`).
+- `FLAG_TEMP_HIDE_FOLLOWER` + `FLAG_SAFE_FOLLOWER_MOVEMENT` (`constants/flags.h`).
+- `PLAYER_AVATAR_FLAG_BIKE` + `FOLLOWER_INVISIBLE_FLAGS` (`global.fieldmap.h`).
+
+Next (part 2): port the follower engine functions (`GetFollowerObject`, `GetFirstLiveMon`,
+`GetMonInfo`, `LoadDynamicFollowerPalette`, `FollowerSetGraphics`, `UpdateFollowingPokemon`,
+`RemoveFollowingPokemon`, `MovementType_FollowPlayer` + movement funcs, `follower_helper.c`,
+spawn hook in `overworld.c`/`field_player_avatar.c`).
