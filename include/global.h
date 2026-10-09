@@ -840,6 +840,6 @@ extern u8 gReservedSpritePaletteCount;
 
 // Adds support for compressed OW graphics,
 // (Also compresses pokemon follower graphics)
-#define OW_GFX_COMPRESS TRUE
+#define OW_GFX_COMPRESS FALSE
 
 #endif // GUARD_GLOBAL_H

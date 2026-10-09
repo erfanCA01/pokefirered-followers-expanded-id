@@ -136,3 +136,31 @@ Remaining (part 2b): follower anim commands (`sAnim_*2F`, `sAnim_Enter*`,
 `sAnim_ExitPokeball*`, `sAnim_*_Asym`), `sAnimTable_Following`/`_Asym`,
 `gObjectEventPic_*` INCBIN (385), `sPicTable_*` (385), `SpeciesToGraphicsInfo`,
 `GetObjectEventGraphicsInfo` `OBJ_EVENT_GFX_MON_BASE` branch, `LoadDynamicFollowerPalette`.
+
+---
+
+## Stage 3 — Part 2b: follower graphics data + anims ✅ DONE (build green)
+
+Ported the follower graphics data and animation commands. Build passes.
+
+### What changed
+- `object_event_anims.h`: ~29 follower anim commands (`sAnim_*2F`, `sAnim_Enter*`,
+  `sAnim_ExitPokeball*`, `sAnim_*_Asym`) + `sAnimTable_Following`/`_Asym`.
+- `object_event_graphics.h`: 385 `gObjectEventPic_*` INCBIN + ball/substitute/castform
+  palettes (Emerald-only `emotes` + `_old`/`Old`/`RubySapphire` variants filtered out).
+- `object_event_pic_tables.h`: 385 `sPicTable_*` (6-frame follower layout).
+- `constants/event_object_movement.h`: `ANIM_EXIT_POKEBALL_FAST_*`.
+- `global.h`: `OW_GFX_COMPRESS FALSE` (compression deferred; `INCBIN_COMP` needs a
+  preprocessor change that is not yet ported).
+- `spritesheet_rules.mk`: ball sprite pattern rule. Copied 28 ball sprites + species
+  palettes (ho_oh, lugia, groudon, kyogre, …).
+- 36 static-encounter sprites replaced by merrp's follower sprites (unified).
+
+### ⚠️ Known follow-ups (next chunk)
+- `SpeciesToGraphicsInfo` + `GetObjectEventGraphicsInfo` `OBJ_EVENT_GFX_MON_BASE`
+  branch + `#include` of `object_event_graphics_info_followers.h` (follower table
+  is still dormant).
+- `LoadDynamicFollowerPalette` (dynamic species palettes).
+- 36 static `gObjectEventGraphicsInfo_<Species>` entries still use `sAnimTable_Standard`
+  (should be `sAnimTable_Following` to match the new 6-frame sprites).
+- Re-enable `OW_GFX_COMPRESS` + port `INCBIN_COMP` preprocessor change later.
