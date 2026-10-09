@@ -1,0 +1,25 @@
+# Core Objective
+- Port merrp's stateless follower system from my modified Pokémon Emerald to this Pokémon FireRed (which is direct fork of pret/pokefirered with bugfix and ubfix turned on in global.h) codebase.
+
+# Reference Repositories
+- Base Emerald: `/home/kerfan/git-projects/pokeemerald/`
+- my merrp Modified Emerald: `/home/kerfan/fork-projects/pokeemerald-followers-expanded-id`
+
+# Strict Architectural Constraints
+- STATELESS DESIGN: You must NOT add new variables or states to `struct SaveBlock1`, `struct SaveBlock2`, or `struct PokemonStorage`. Do not alter the size of any save structures.
+- MEMORY OFFSETS: Do not hallucinate or assume FireRed shares Emerald's RAM addresses or struct names. Always use `grep` to find the correct FireRed equivalents.
+- ORIGINAL MULTIPLAYER COMPATIBLE: The follower System must also be compatible with orignal fire red GBA roms Multiplayer sessions, so follower should be off when in multiplayer session, just like how merrp made it.
+- VANILLA SAVE COMPATIBLE: The modified ROM must load vanilla FireRed saves and produce saves that vanilla FireRed can load back (interchangeable anytime), like merrp's system. This means the on-disk save layout must stay identical to vanilla FireRed.
+
+# Execution Workflow
+1. MAP FIRST: Before writing code, cross-reference `include/global.h`, `include/save.h`, and `src/event_object_movement.c` between the Emerald repos to understand the diff.
+2. INCREMENTAL CHUNKS: Port logic file-by-file. Do not attempt a massive multi-file rewrite in one go.
+3. VERIFY CONSTANTLY: After editing C files, always run `make firered_rev1 -j$(nproc) COMPARE=0` in the terminal. If compilation fails, read the error and grep for the correct FireRed structs to fix it.
+
+# Diffing Strategy
+- Do NOT run a blind full-repo `git diff` all at once; binary assets and sprite tables will flood the context.
+- Diff specific logic files as needed (e.g., `src/event_object_movement.c`, `src/field_player_avatar.c`, and follower engine files).
+- If saving temporary patch files, place them in `.tmp/` inside the workspace.
+
+# Efficiency
+- NEVER USE PAGERS: When running git commands, always use the --no-pager flag (e.g., git --no-pager diff) or pipe the output to cat (e.g., | cat) so the terminal does not hang waiting for user input.

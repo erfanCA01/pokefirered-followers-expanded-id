@@ -277,3 +277,21 @@ after spawn and after `FollowerSetGraphics`.
 
 `LoadDynamicFollowerPalette` used the BIOS `LZ77UnCompWram`; FireRed decompresses
 mon palettes with `LZDecompressWram`. Switched to `LZDecompressWram`.
+
+---
+
+## ⚠️ NEW GOAL: vanilla save compatibility (interchangeable)
+
+Per user requirement: the ROM must load **vanilla FireRed saves** and write saves that
+vanilla FireRed can load back, anytime — like merrp's system.
+
+**Root cause of the "all NPCs are Pokémon on first load" bug:** widening
+`graphicsId` u8→u16 (Stage 1) changed the `ObjectEvent`/`ObjectEventTemplate` field
+layout (spriteId relocated to 0x23), so a vanilla save's `objectEvents`/`objectEventTemplates`
+are misread. `InitObjectEventStateFromTemplate` re-derives `graphicsId` from the ROM on
+map load (which is why NPCs recover after a map transition), but `load_save.c` restores
+`gObjectEvents` from the save directly on continue, so the first map shows corruption.
+
+**Planned fix:** re-sync the restored object-event `graphicsId`/`spriteId` from the ROM
+map templates on load (or migrate the save fields), keeping the on-disk layout identical
+to vanilla. To be truly interchangeable, the save layout must not diverge.
