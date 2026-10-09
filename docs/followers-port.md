@@ -253,3 +253,11 @@ Known caveats (next chunks):
 2. 36 static encounters use `sAnimTable_Standard` (should be `sAnimTable_Following`).
 3. Interaction messages/emotions (`follower_helper.c`, `follower.inc`) not ported.
 4. Advanced follow (dash/jump/transform/bob) not ported.
+
+---
+
+## Fix: follower never appeared (Shadow state stuck)
+
+`MovementType_FollowPlayer_Shadow` never transitioned to `Active`, so the follower
+stayed invisible/shadowing forever. Fixed to match merrp: when visible, it moves to
+the player and enters `Active` (`sprite->data[1] = 1`); when not visible, it shadows.
