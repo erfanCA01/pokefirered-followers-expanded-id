@@ -46,3 +46,32 @@ the `u16` field forces alignment padding that grows the struct and trips
 `graphicsId` is now `u16` and `spriteId` relocated, so a vanilla FireRed save's
 `objectEvents` bytes will be interpreted differently. merrp's "Made follower
 pokemon inactive on vanilla saves" logic must be ported in the `load_save.c` chunk.
+
+---
+
+## Stage 2 — Chunk 2: API widening u8→u16 ✅ DONE
+
+Widened the object-event graphicsId API so the u16 `graphicsId` from Stage 1
+flows through without truncation.
+
+### Files changed
+
+| File | Change |
+|---|---|
+| `include/event_object_movement.h` | `ObjectEventSetGraphicsId` `u8`→`u16` (both decls), `GetObjectEventGraphicsInfo` `u8`→`u16`. |
+| `include/event_data.h` | `VarGetObjectEventGraphicsId` return `u8`→`u16`. |
+| `src/event_object_movement.c` | `ObjectEventSetGraphicsId`, `ObjectEventSetGraphicsIdByLocalIdAndMap`, `GetObjectEventGraphicsInfo` params `u8`→`u16`. |
+| `src/event_data.c` | `VarGetObjectEventGraphicsId` return `u8`→`u16`. |
+
+### Verification
+- Build: `make firered_rev1 -j$(nproc) COMPARE=0` → exit 0, ROM produced.
+- EWRAM/IWRAM/ROM usage unchanged (size-neutral).
+
+### Deferred to Stage 3 (asset-heavy)
+The follower **graphics info table** and sprite assets are a separate, larger
+stage: `graphics/object_events/pics/pokemon/*.png` (386+ sprites) + generated
+tables (`sPicTable_*`, `sOamTables_*`, `sAnimTable_Following`, palettes) +
+`src/data/object_events/object_event_graphics_info_followers.h` +
+`SpeciesToGraphicsInfo` / `gPokemonObjectGraphics` / `gCastformObjectGraphics`
+/ `gFollowerPalettes`. `GetObjectEventGraphicsInfo` will gain its
+`OBJ_EVENT_GFX_MON_BASE` branch then.
