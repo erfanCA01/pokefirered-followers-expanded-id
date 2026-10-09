@@ -469,6 +469,9 @@ static const u8 gInitialMovementTypeFacingDirections[MOVEMENT_TYPES_COUNT] = {
 #define OBJ_EVENT_PAL_TAG_RS_GROUDON_REFLECTION       0x111A
 #define OBJ_EVENT_PAL_TAG_RS_SUBMARINE_SHADOW         0x111B
 #define OBJ_EVENT_PAL_TAG_NONE                        0x11FF
+#define OBJ_EVENT_PAL_TAG_DYNAMIC                 0x1124
+#define OBJ_EVENT_PAL_TAG_SUBSTITUTE              0x7611
+#define OBJ_EVENT_PAL_TAG_WHITE                   (OBJ_EVENT_PAL_TAG_NONE - 1)
 
 #include "data/object_events/object_event_graphics_info_pointers.h"
 #include "data/field_effects/field_effect_object_template_pointers.h"

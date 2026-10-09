@@ -121,3 +121,18 @@ correctly reports nothing to do. They become active once the data files are adde
 / `gFollowerPalettes`), plus the code wiring (`SpeciesToGraphicsInfo`,
 `GetObjectEventGraphicsInfo` `OBJ_EVENT_GFX_MON_BASE` branch, `SPECIES_SHINY_TAG`,
 local `OBJ_EVENT_PAL_TAG_DYNAMIC/SUBSTITUTE/NONE` palette tags).
+
+---
+
+## Stage 3 — Part 2a: palette tags + SPECIES_SHINY_TAG + followers table (dormant) ✅ DONE
+
+- Added `SPECIES_SHINY_TAG 500` to `include/constants/species.h`.
+- Added `OBJ_EVENT_PAL_TAG_DYNAMIC/SUBSTITUTE/WHITE` to the local palette-tag block in
+  `src/event_object_movement.c`.
+- Copied `src/data/object_events/object_event_graphics_info_followers.h` (511 lines;
+  dormant until its `sPicTable_*`/`sAnimTable_Following` deps are ported).
+
+Remaining (part 2b): follower anim commands (`sAnim_*2F`, `sAnim_Enter*`,
+`sAnim_ExitPokeball*`, `sAnim_*_Asym`), `sAnimTable_Following`/`_Asym`,
+`gObjectEventPic_*` INCBIN (385), `sPicTable_*` (385), `SpeciesToGraphicsInfo`,
+`GetObjectEventGraphicsInfo` `OBJ_EVENT_GFX_MON_BASE` branch, `LoadDynamicFollowerPalette`.
