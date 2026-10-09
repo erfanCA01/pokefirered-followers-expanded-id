@@ -158,6 +158,7 @@ static void MovementType_RaiseHandAndStop(struct Sprite *);
 static void MovementType_RaiseHandAndJump(struct Sprite *);
 static void MovementType_RaiseHandAndSwim(struct Sprite *);
 static void MovementType_WanderAroundSlower(struct Sprite *);
+static void MovementType_FollowPlayer(struct Sprite *);
 
 enum {
     MOVE_SPEED_NORMAL, // walking
@@ -313,6 +314,7 @@ static void (*const sMovementTypeCallbacks[MOVEMENT_TYPES_COUNT])(struct Sprite 
     [MOVEMENT_TYPE_RAISE_HAND_AND_JUMP]                   = MovementType_RaiseHandAndJump,
     [MOVEMENT_TYPE_RAISE_HAND_AND_SWIM]                   = MovementType_RaiseHandAndSwim,
     [MOVEMENT_TYPE_WANDER_AROUND_SLOWER]                  = MovementType_WanderAroundSlower,
+    [MOVEMENT_TYPE_FOLLOW_PLAYER]                        = MovementType_FollowPlayer,
 };
 
 static const bool8 gRangedMovementTypes[MOVEMENT_TYPES_COUNT] = {
@@ -442,6 +444,7 @@ static const u8 gInitialMovementTypeFacingDirections[MOVEMENT_TYPES_COUNT] = {
     [MOVEMENT_TYPE_RAISE_HAND_AND_JUMP] = DIR_SOUTH,
     [MOVEMENT_TYPE_RAISE_HAND_AND_SWIM] = DIR_SOUTH,
     [MOVEMENT_TYPE_WANDER_AROUND_SLOWER] = DIR_SOUTH,
+    [MOVEMENT_TYPE_FOLLOW_PLAYER] = DIR_SOUTH,
 };
 
 #define OBJ_EVENT_PAL_TAG_PLAYER_RED                  0x1100
@@ -2229,6 +2232,169 @@ static void FollowerSetGraphics(struct ObjectEvent *objEvent, u16 species, u8 fo
     if (graphicsInfo->paletteTag == OBJ_EVENT_PAL_TAG_DYNAMIC)
         gSprites[objEvent->spriteId].oam.paletteNum = LoadDynamicFollowerPalette(species, form, shiny);
 }
+
+void UpdateFollowingPokemon(void)
+{
+    struct ObjectEvent *objEvent = GetFollowerObject();
+    struct Sprite *sprite;
+    u16 species;
+    bool8 shiny;
+    u8 form;
+
+    if (!GetFollowerInfo(&species, &form, &shiny)
+        || (gMapHeader.mapType == MAP_TYPE_INDOOR && SpeciesToGraphicsInfo(species, 0)->oam->size > SPRITE_SIZE(32x32))
+        || FlagGet(FLAG_TEMP_HIDE_FOLLOWER))
+    {
+        RemoveFollowingPokemon();
+        return;
+    }
+
+    if (objEvent == NULL)
+    {
+        u32 objId = gPlayerAvatar.objectEventId;
+        struct ObjectEventTemplate template = {0};
+        template.localId = OBJ_EVENT_ID_FOLLOWER;
+        template.graphicsId = OBJ_EVENT_GFX_MON_BASE + species;
+        template.x = gSaveBlock1Ptr->pos.x;
+        template.y = gSaveBlock1Ptr->pos.y;
+        template.objUnion.normal.elevation = gObjectEvents[objId].active ? gObjectEvents[objId].currentElevation : 3;
+        template.objUnion.normal.movementType = MOVEMENT_TYPE_FOLLOW_PLAYER;
+        template.objUnion.normal.trainerRange_berryTreeId = (form & 0x1F) | (shiny << 5);
+        if ((objId = SpawnSpecialObjectEvent(&template)) >= OBJECT_EVENTS_COUNT)
+            return;
+        objEvent = &gObjectEvents[objId];
+        objEvent->invisible = TRUE;
+    }
+    sprite = &gSprites[objEvent->spriteId];
+    if (species != OW_SPECIES(objEvent) || shiny != objEvent->shiny || form != OW_FORM(objEvent))
+    {
+        MoveObjectEventToMapCoords(objEvent, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.x, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.y);
+        FollowerSetGraphics(objEvent, species, form, shiny);
+        objEvent->invisible = TRUE;
+    }
+    sprite->data[6] = 0;
+}
+
+static bool32 UpdateMonMoveInPlace(struct ObjectEvent *objectEvent, struct Sprite *sprite)
+{
+    if (!objectEvent->singleMovementActive)
+    {
+        ObjectEventSetSingleMovement(objectEvent, sprite, GetWalkInPlaceNormalMovementAction(objectEvent->facingDirection));
+        objectEvent->singleMovementActive = TRUE;
+        return TRUE;
+    }
+    else if (ObjectEventExecSingleMovementAction(objectEvent, sprite))
+    {
+        objectEvent->singleMovementActive = FALSE;
+    }
+    return FALSE;
+}
+
+bool8 FollowablePlayerMovement_Idle(struct ObjectEvent *objectEvent, struct Sprite *sprite, u8 playerDirection, bool8 tileCallback(u8))
+{
+    if (UpdateMonMoveInPlace(objectEvent, sprite))
+    {
+        sprite->data[1] = 1;
+        return TRUE;
+    }
+    return FALSE;
+}
+
+bool8 FollowablePlayerMovement_Step(struct ObjectEvent *objectEvent, struct Sprite *sprite, u8 playerDirection, bool8 tileCallback(u8))
+{
+    u32 direction;
+    s16 x, y, targetX, targetY;
+
+    targetX = gObjectEvents[gPlayerAvatar.objectEventId].previousCoords.x;
+    targetY = gObjectEvents[gPlayerAvatar.objectEventId].previousCoords.y;
+    x = gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.x;
+    y = gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.y;
+
+    if ((x == targetX && y == targetY) || !IsFollowerVisible())
+        return FALSE;
+
+    x = objectEvent->currentCoords.x;
+    y = objectEvent->currentCoords.y;
+    ClearObjectEventMovement(objectEvent, sprite);
+
+    if (objectEvent->invisible)
+    {
+        MoveObjectEventToMapCoords(objectEvent, targetX, targetY);
+        objectEvent->invisible = FALSE;
+        return FALSE;
+    }
+    else if (x == targetX && y == targetY)
+    {
+        return FALSE;
+    }
+
+    direction = GetDirectionToFace(x, y, targetX, targetY);
+    MoveCoords(direction, &x, &y);
+    objectEvent->movementActionId = GetWalkNormalMovementAction(direction);
+    sprite->data[2] = 0;
+    objectEvent->singleMovementActive = TRUE;
+    sprite->data[1] = 2;
+    return TRUE;
+}
+
+static bool8 (*const gFollowPlayerMovementFuncs[])(struct ObjectEvent *, struct Sprite *, u8, bool8(u8)) = {
+    FollowablePlayerMovement_Idle,
+    FollowablePlayerMovement_Idle,
+    FollowablePlayerMovement_Step,
+    FollowablePlayerMovement_Step,
+    FollowablePlayerMovement_Step,
+    FollowablePlayerMovement_Step,
+    FollowablePlayerMovement_Step,
+    FollowablePlayerMovement_Step,
+    FollowablePlayerMovement_Step,
+};
+
+bool8 MovementType_FollowPlayer_Shadow(struct ObjectEvent *objectEvent, struct Sprite *sprite)
+{
+    ClearObjectEventMovement(objectEvent, sprite);
+    if (!IsFollowerVisible())
+    {
+        objectEvent->invisible = TRUE;
+        MoveObjectEventToMapCoords(objectEvent, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.x, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.y);
+    }
+    return FALSE;
+}
+
+bool8 MovementType_FollowPlayer_Active(struct ObjectEvent *objectEvent, struct Sprite *sprite)
+{
+    if (!IsFollowerVisible())
+    {
+        if (objectEvent->invisible)
+        {
+            sprite->data[1] = 0;
+            return FALSE;
+        }
+        ClearObjectEventMovement(objectEvent, sprite);
+        objectEvent->invisible = TRUE;
+        return TRUE;
+    }
+    return gFollowPlayerMovementFuncs[PlayerGetCopyableMovement()](objectEvent, sprite, GetPlayerMovementDirection(), NULL);
+}
+
+bool8 MovementType_FollowPlayer_Moving(struct ObjectEvent *objectEvent, struct Sprite *sprite)
+{
+    if (ObjectEventExecSingleMovementAction(objectEvent, sprite))
+    {
+        objectEvent->singleMovementActive = FALSE;
+        objectEvent->facingDirectionLocked = FALSE;
+        if (sprite->data[1])
+            sprite->data[1] = 1;
+    }
+    return FALSE;
+}
+
+static u8 (*const gMovementTypeFuncs_FollowPlayer[])(struct ObjectEvent *, struct Sprite *) = {
+    MovementType_FollowPlayer_Shadow,
+    MovementType_FollowPlayer_Active,
+    MovementType_FollowPlayer_Moving,
+};
+
+movement_type_def(MovementType_FollowPlayer, gMovementTypeFuncs_FollowPlayer)
 
 static void SetObjectEventDynamicGraphicsId(struct ObjectEvent *objectEvent)
 {

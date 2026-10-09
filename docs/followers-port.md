@@ -213,3 +213,29 @@ Adaptations: `MetatileBehavior_IsSurfableWaterOrUnderwater` → `MetatileBehavio
 Ported `LoadDynamicFollowerPalette` (LZ77 front-sprite palette, adapted for FireRed's
 `LZ77UnCompWram`) and `FollowerSetGraphics` (uses FireRed's `ObjectEventSetGraphicsId`
 + dynamic palette). Added `data.h`/`decompress.h` includes.
+
+---
+
+## Stage 4 — Part 2 (Layer B+C): follower spawn + follow movement ✅ PLAYTEST READY
+
+Ported the spawn logic and follow movement; wired the spawn hook into overworld.
+
+### What changed
+- `UpdateFollowingPokemon` / `RemoveFollowingPokemon` (spawn/despawn).
+- `MovementType_FollowPlayer` (+ `_Shadow`/`_Active`/`_Moving`), `gFollowPlayerMovementFuncs`,
+  `FollowablePlayerMovement_Idle`/`_Step`, `UpdateMonMoveInPlace`.
+- Movement func-table + facing-table entries for `MOVEMENT_TYPE_FOLLOW_PLAYER`;
+  `MOVEMENT_TYPES_COUNT` 0x51→0x52.
+- Spawn hooks in `overworld.c` (`InitObjectEventsLocal` + `ReturnToFieldLocal`).
+
+### FireRed adaptations
+- `sprite->sTypeFuncId` → `sprite->data[1]`; `sprite->sActionFuncId` → `sprite->data[2]`
+  (FireRed's `Sprite` has no named state fields).
+- `ST_OAM_SIZE_2` → `SPRITE_SIZE(32x32)`.
+- Follow movement is the simplified core (no dash/jump/transform/bob yet).
+
+### ⚠️ Known caveats for playtest
+- Follower is the first conscious party mon (GetFirstLiveMon).
+- Multiplayer link-room disable NOT yet wired (follower will show in link rooms).
+- 36 static encounters still use `sAnimTable_Standard` (should be `sAnimTable_Following`).
+- Interaction messages/emotions (`follower_helper.c`, `follower.inc`) not yet ported.

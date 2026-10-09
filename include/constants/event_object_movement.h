@@ -84,7 +84,7 @@
 #define MOVEMENT_TYPE_RAISE_HAND_AND_SWIM              0x4F
 #define MOVEMENT_TYPE_WANDER_AROUND_SLOWER             0x50
 #define MOVEMENT_TYPE_FOLLOW_PLAYER                    0x51
-#define MOVEMENT_TYPES_COUNT                           0x51
+#define MOVEMENT_TYPES_COUNT                           0x52
 
 #define MOVEMENT_ACTION_FACE_DOWN                       0x0
 #define MOVEMENT_ACTION_FACE_UP                         0x1

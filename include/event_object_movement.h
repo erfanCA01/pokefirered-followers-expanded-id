@@ -109,6 +109,8 @@ void RemoveObjectEvent(struct ObjectEvent *);
 struct Pokemon *GetFirstLiveMon(void);
 struct ObjectEvent *GetFollowerObject(void);
 void RemoveFollowingPokemon(void);
+void UpdateFollowingPokemon(void);
+u8 GetDirectionToFace(s16 x1, s16 y1, s16 x2, s16 y2);
 void SetObjectInvisibility(u8 localId, u8 mapNum, u8 mapGroup, u8 state);
 void FreeAndReserveObjectSpritePalettes(void);
 void SetObjectPositionByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroup, s16 x, s16 y);
