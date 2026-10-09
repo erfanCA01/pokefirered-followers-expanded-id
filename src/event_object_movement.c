@@ -2374,6 +2374,7 @@ bool8 MovementType_FollowPlayer_Active(struct ObjectEvent *objectEvent, struct S
         }
         ClearObjectEventMovement(objectEvent, sprite);
         objectEvent->invisible = TRUE;
+        sprite->invisible = TRUE;
         return TRUE;
     }
     return gFollowPlayerMovementFuncs[PlayerGetCopyableMovement()](objectEvent, sprite, GetPlayerMovementDirection(), NULL);

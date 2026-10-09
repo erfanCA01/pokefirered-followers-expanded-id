@@ -311,3 +311,11 @@ Reverted `graphicsId` u16→u8 and `spriteId` back to vanilla layout (no shiny b
 - `OW_SPECIES`/`OW_FORM`/`IS_OW_MON_OBJ` macros redefined to use the globals.
 - API reverted: `GetObjectEventGraphicsInfo`, `ObjectEventSetGraphicsId`,
   `VarGetObjectEventGraphicsId` back to u8.
+
+---
+
+## Fix: follower hide on door/warp (sprite not synced)
+
+`MovementType_FollowPlayer_Active` set `objectEvent->invisible` but not
+`sprite->invisible`, so the follower stayed visible when walking through a door.
+Now syncs the sprite.
