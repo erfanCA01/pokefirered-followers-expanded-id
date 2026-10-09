@@ -39,6 +39,7 @@
 #define INCBIN_S8   INCBIN
 #define INCBIN_S16  INCBIN
 #define INCBIN_S32  INCBIN
+#define INCBIN_COMP INCBIN
 #endif // IDE support
 
 #define ARRAY_COUNT(array) (sizeof(array) / sizeof((array)[0]))
@@ -93,6 +94,8 @@
 #else
 #define SAFE_DIV(a, b) ((a) / (b))
 #endif
+
+#define IS_POW_OF_TWO(n) (((n) & ((n)-1)) == 0)
 
 // Extracts the upper 16 bits of a 32-bit number
 #define HIHALF(n) (((n) & 0xFFFF0000) >> 16)
@@ -834,5 +837,9 @@ struct MapPosition
 
 extern struct SaveBlock1* gSaveBlock1Ptr;
 extern u8 gReservedSpritePaletteCount;
+
+// Adds support for compressed OW graphics,
+// (Also compresses pokemon follower graphics)
+#define OW_GFX_COMPRESS TRUE
 
 #endif // GUARD_GLOBAL_H

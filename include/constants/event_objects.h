@@ -179,10 +179,50 @@
 #define OBJ_EVENT_GFX_VAR_E  (OBJ_EVENT_GFX_VARS + 0xE)
 #define OBJ_EVENT_GFX_VAR_F  (OBJ_EVENT_GFX_VARS + 0xF) // 255
 
+// Follower pokemon OW graphics. Species are offset by OBJ_EVENT_GFX_MON_BASE
+// so they don't collide with the normal OBJ_EVENT_GFX_* ids.
+// A follower's graphicsId packs an 11-bit species index with a 5-bit form index.
+#define OBJ_EVENT_GFX_MON_BASE  0x200 // 512
+#define OBJ_EVENT_GFX_SPECIES_BITS 11
+#define OBJ_EVENT_GFX_SPECIES_MASK ((1 << OBJ_EVENT_GFX_SPECIES_BITS) - 1)
+
+// Used to call a specific species' follower graphics. Useful for static encounters.
+#define OBJ_EVENT_GFX_SPECIES(name) (SPECIES_##name + OBJ_EVENT_GFX_MON_BASE)
+
+#define OW_SPECIES(x) (((x)->graphicsId & OBJ_EVENT_GFX_SPECIES_MASK) - OBJ_EVENT_GFX_MON_BASE)
+#define OW_FORM(x) ((x)->graphicsId >> OBJ_EVENT_GFX_SPECIES_BITS)
+
+// Whether an Object Event is an OW pokemon
+#define IS_OW_MON_OBJ(obj) ((obj)->graphicsId >= OBJ_EVENT_GFX_MON_BASE)
+
+// If true, follower pokemon will bob up and down during their idle & walking animations
+#define OW_MON_BOBBING  TRUE
+// If true, OW pokemon with MOVEMENT_TYPE_WANDER* will walk-in-place in between steps
+#define OW_MON_WANDER_WALK TRUE
+
+// If true, adds a small amount of overhead to OW code so that large (48x48, 64x64)
+// OWs will display correctly under bridges, etc.
+#define LARGE_OW_SUPPORT TRUE
+
+// Followers will emerge from the pokeball they are stored in, instead of a normal pokeball
+#define OW_MON_POKEBALLS TRUE
+
+// New/old handling for followers during scripts;
+// TRUE: Script collisions hide follower, FLAG_SAFE_FOLLOWER_MOVEMENT on by default
+// (scripted player movement moves follower too!)
+#define OW_MON_SCRIPT_MOVEMENT TRUE
+
+// If set, the only pokemon allowed to follow you will be those matching species,
+// met location, and/or met level. These accept vars, too: VAR_TEMP_1, etc.
+#define OW_MON_ALLOWED_SPECIES (0)
+#define OW_MON_ALLOWED_MET_LVL (0)
+#define OW_MON_ALLOWED_MET_LOC (0)
+
 #define SHADOW_SIZE_S   0
 #define SHADOW_SIZE_M   1
 #define SHADOW_SIZE_L   2
-#define SHADOW_SIZE_XL  3
+#define SHADOW_SIZE_XL  3 // unused; repurposed to mean no shadow
+#define SHADOW_SIZE_NONE 3
 
 #define F_INANIMATE                        (1 << 6)
 #define F_DISABLE_REFLECTION_PALETTE_LOAD  (1 << 7)
@@ -190,6 +230,9 @@
 #define TRACKS_NONE       0
 #define TRACKS_FOOT       1
 #define TRACKS_BIKE_TIRE  2
+#define TRACKS_SLITHER    3
+#define TRACKS_SPOT       4
+#define TRACKS_BUG        5
 
 #define OBJ_KIND_NORMAL 0
 #define OBJ_KIND_CLONE  255
@@ -202,10 +245,12 @@
 #define LOCALID_NONE                         0
 #define LOCALID_CAMERA                     127
 #define LOCALID_BERRY_BLENDER_PLAYER_END   240 // This will use 5 (MAX_RFU_PLAYERS) IDs ending at 240, i.e. 236-240
+#define LOCALID_FOLLOWING_POKEMON          254
 #define LOCALID_PLAYER                     255
 
 // Aliases for old names. "object event id" normally refers to an index into gObjectEvents, which these are not.
 #define OBJ_EVENT_ID_CAMERA LOCALID_CAMERA
 #define OBJ_EVENT_ID_PLAYER LOCALID_PLAYER
+#define OBJ_EVENT_ID_FOLLOWER LOCALID_FOLLOWING_POKEMON
 
 #endif // GUARD_CONSTANTS_EVENT_OBJECTS_H
