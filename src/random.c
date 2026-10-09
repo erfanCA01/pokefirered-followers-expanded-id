@@ -12,6 +12,28 @@ u16 Random(void)
     return gRngValue >> 16;
 }
 
+u8 RandomWeightedIndex(u8 *weights, u8 length)
+{
+    u32 i;
+    u16 randomValue;
+    u16 weightSum = 0;
+
+    for (i = 0; i < length; i++)
+        weightSum += weights[i];
+
+    randomValue = weightSum > 0 ? Random() % weightSum : 0;
+    weightSum = 0;
+
+    for (i = 0; i < length; i++)
+    {
+        weightSum += weights[i];
+        if (randomValue <= weightSum)
+            return i;
+    }
+
+    return length - 1;
+}
+
 void SeedRng(u16 seed)
 {
     gRngValue = seed;

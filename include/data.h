@@ -6,6 +6,30 @@
 #define SPECIES_SHINY_TAG 500
 #define TRAINER_ENCOUNTER_MUSIC(trainer)((gTrainers[trainer].encounterMusic_gender & 0x7F))
 
+#define N_FOLLOWER_HAPPY_MESSAGES 31
+#define N_FOLLOWER_NEUTRAL_MESSAGES 14
+#define N_FOLLOWER_SAD_MESSAGES 3
+#define N_FOLLOWER_UPSET_MESSAGES 3
+#define N_FOLLOWER_ANGRY_MESSAGES 5
+#define N_FOLLOWER_PENSIVE_MESSAGES 20
+#define N_FOLLOWER_LOVE_MESSAGES 10
+#define N_FOLLOWER_SURPRISE_MESSAGES 20
+#define N_FOLLOWER_CURIOUS_MESSAGES 7
+#define N_FOLLOWER_MUSIC_MESSAGES 14
+#define N_FOLLOWER_POISONED_MESSAGES 1
+
+struct FollowerMsgInfo {
+    const u8 *text;
+    const u8 *script;
+};
+
+struct FollowerMessagePool
+{
+    const struct FollowerMsgInfo * messages;
+    const u8 * script;
+    u16 length;
+};
+
 struct MonCoords
 {
     // This would use a bitfield, but some function
@@ -28,6 +52,18 @@ extern const struct CompressedSpriteSheet gMonFrontPicTable[];
 extern const struct MonCoords gMonBackPicCoords[];
 extern const struct CompressedSpriteSheet gMonBackPicTable[];
 extern const struct CompressedSpritePalette gMonPaletteTable[];
+
+extern const struct FollowerMsgInfo gFollowerHappyMessages[];
+extern const struct FollowerMsgInfo gFollowerNeutralMessages[];
+extern const struct FollowerMsgInfo gFollowerSadMessages[];
+extern const struct FollowerMsgInfo gFollowerUpsetMessages[];
+extern const struct FollowerMsgInfo gFollowerAngryMessages[];
+extern const struct FollowerMsgInfo gFollowerPensiveMessages[];
+extern const struct FollowerMsgInfo gFollowerLoveMessages[];
+extern const struct FollowerMsgInfo gFollowerSurpriseMessages[];
+extern const struct FollowerMsgInfo gFollowerCuriousMessages[];
+extern const struct FollowerMsgInfo gFollowerMusicMessages[];
+extern const struct FollowerMsgInfo gFollowerPoisonedMessages[];
 extern const struct CompressedSpritePalette gMonShinyPaletteTable[];
 extern const union AnimCmd *const *const gTrainerFrontAnimsPtrTable[];
 extern const struct MonCoords gTrainerFrontPicCoords[];

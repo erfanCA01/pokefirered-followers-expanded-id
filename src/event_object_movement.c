@@ -2,6 +2,9 @@
 #include "gflib.h"
 #include "event_data.h"
 #include "data.h"
+#include "event_scripts.h"
+#include "follower_helper.h"
+#include "constants/battle.h"
 #include "decompress.h"
 #include "event_object_movement.h"
 #include "field_camera.h"
@@ -2190,6 +2193,65 @@ static bool8 SpeciesHasType(u16 species, u8 type)
     return gSpeciesInfo[species].types[0] == type || gSpeciesInfo[species].types[1] == type;
 }
 
+// Picks an emotion (weighted by friendship/HP/status), then picks a random
+// basic message for that emotion and dispatches to its script. The message
+// pointer is left in ctx->data[0] so the script's `message 0x0` shows it.
+bool8 ScrFunc_getfolloweraction(struct ScriptContext *ctx)
+{
+    u32 emotion;
+    u32 multi;
+    struct Pokemon *mon = GetFirstLiveMon();
+    u8 emotionWeight[FOLLOWER_EMOTION_LENGTH] = {
+        [FOLLOWER_EMOTION_HAPPY] = 10,
+        [FOLLOWER_EMOTION_NEUTRAL] = 15,
+        [FOLLOWER_EMOTION_SAD] = 5,
+        [FOLLOWER_EMOTION_UPSET] = 15,
+        [FOLLOWER_EMOTION_ANGRY] = 15,
+        [FOLLOWER_EMOTION_PENSIVE] = 15,
+        [FOLLOWER_EMOTION_LOVE] = 0,
+        [FOLLOWER_EMOTION_SURPRISE] = 10,
+        [FOLLOWER_EMOTION_CURIOUS] = 10,
+        [FOLLOWER_EMOTION_MUSIC] = 15,
+        [FOLLOWER_EMOTION_POISONED] = 0,
+    };
+
+    if (mon == NULL)
+        return FALSE;
+
+    // Skip the rest of the interaction script; we dispatch dynamically below.
+    ScriptJump(ctx, EventScript_FollowerEnd);
+
+    multi = GetMonData(mon, MON_DATA_FRIENDSHIP);
+    if (multi > 80)
+    {
+        emotionWeight[FOLLOWER_EMOTION_HAPPY] = 20;
+        emotionWeight[FOLLOWER_EMOTION_UPSET] = 5;
+        emotionWeight[FOLLOWER_EMOTION_ANGRY] = 5;
+        emotionWeight[FOLLOWER_EMOTION_LOVE] = 20;
+        emotionWeight[FOLLOWER_EMOTION_MUSIC] = 20;
+    }
+    if (multi > 170)
+    {
+        emotionWeight[FOLLOWER_EMOTION_HAPPY] = 30;
+        emotionWeight[FOLLOWER_EMOTION_LOVE] = 30;
+    }
+
+    // Low HP makes the follower sad
+    if (SAFE_DIV(mon->hp * 100, mon->maxHP) < 50)
+        emotionWeight[FOLLOWER_EMOTION_SAD] = 30;
+
+    emotion = RandomWeightedIndex(emotionWeight, FOLLOWER_EMOTION_LENGTH);
+
+    // Poisoned override
+    if (mon->status & STATUS1_PSN_ANY)
+        emotion = FOLLOWER_EMOTION_POISONED;
+
+    multi = Random() % gFollowerBasicMessages[emotion].length;
+    ctx->data[0] = (u32) gFollowerBasicMessages[emotion].messages[multi].text;
+    ScriptCall(ctx, gFollowerBasicMessages[emotion].script);
+    return FALSE;
+}
+
 EWRAM_DATA u16 gFollowerSpecies = SPECIES_NONE;
 EWRAM_DATA u8 gFollowerForm = 0;
 EWRAM_DATA bool8 gFollowerShiny = FALSE;
@@ -2972,6 +3034,8 @@ void SetObjectEventDirection(struct ObjectEvent *objectEvent, u8 direction)
 
 static const u8 *GetObjectEventScriptPointerByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroup)
 {
+    if (localId == OBJ_EVENT_ID_FOLLOWER)
+        return EventScript_Follower;
     return GetObjectEventTemplateByLocalIdAndMap(localId, mapNum, mapGroup)->script;
 }
 

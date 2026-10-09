@@ -10,6 +10,9 @@ extern u32 gRng2Value;
 u16 Random(void);
 u16 Random2(void);
 
+// Returns a random index into `weights` (length `length`), weighted by each entry.
+u8 RandomWeightedIndex(u8 *weights, u8 length);
+
 //Returns a 32-bit pseudorandom number
 #define Random32() (Random() | (Random() << 16))
 

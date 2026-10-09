@@ -351,3 +351,20 @@ Follower is removed whenever a multiplayer session is active
 sprites. Also set `FLAG_TEMP_HIDE_FOLLOWER` on the Union Room map transition
 (matching merrp's script-based hide). TEMP flags auto-clear on the next map
 load, so the follower reappears after leaving the room.
+
+## Feature: follower interaction — talk to the follower (message + cry)
+
+Pressing A on the follower now runs `EventScript_Follower` (buffers the live
+mon's nickname, plays its cry, then picks a message based on friendship / HP /
+poison status via `ScrFunc_getfolloweraction`).
+
+New files: `src/follower_helper.c`, `include/follower_helper.h`,
+`src/data/text/follower_messages.h`, `data/scripts/follower.inc`. Also added
+`RandomWeightedIndex` and the `ScrFunc_bufferlivemonnickname`/
+`ScrFunc_playfirstmoncry` script functions. The follower's object event now
+resolves its script pointer to `EventScript_Follower` in
+`GetObjectEventScriptPointerByLocalIdAndMap`.
+
+Scope note: this is the core "talk" interaction. The visual emotion icons
+(FLDEFF_EMOTE) and merrp's Emerald-specific conditional messages (map/song
+conditions) are not ported yet.
