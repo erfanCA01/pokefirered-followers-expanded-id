@@ -2264,6 +2264,7 @@ void UpdateFollowingPokemon(void)
             return;
         objEvent = &gObjectEvents[objId];
         objEvent->invisible = TRUE;
+        gSprites[objEvent->spriteId].invisible = TRUE;
     }
     sprite = &gSprites[objEvent->spriteId];
     if (species != OW_SPECIES(objEvent) || shiny != objEvent->shiny || form != OW_FORM(objEvent))
@@ -2271,6 +2272,7 @@ void UpdateFollowingPokemon(void)
         MoveObjectEventToMapCoords(objEvent, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.x, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.y);
         FollowerSetGraphics(objEvent, species, form, shiny);
         objEvent->invisible = TRUE;
+        gSprites[objEvent->spriteId].invisible = TRUE;
     }
     sprite->data[6] = 0;
 }

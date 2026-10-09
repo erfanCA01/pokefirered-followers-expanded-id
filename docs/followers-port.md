@@ -261,3 +261,12 @@ Known caveats (next chunks):
 `MovementType_FollowPlayer_Shadow` never transitioned to `Active`, so the follower
 stayed invisible/shadowing forever. Fixed to match merrp: when visible, it moves to
 the player and enters `Active` (`sprite->data[1] = 1`); when not visible, it shadows.
+
+---
+
+## Fix: follower sprite was visible at spawn (overlapping NPCs)
+
+`SpawnSpecialObjectEvent` creates the sprite with `invisible = FALSE`; only
+`objectEvent->invisible` was set afterwards, so the sprite stayed visible (showing
+the follower's Pokémon sprite over an NPC). Now also set `gSprites[...].invisible = TRUE`
+after spawn and after `FollowerSetGraphics`.
