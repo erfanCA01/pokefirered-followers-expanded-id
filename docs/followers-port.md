@@ -270,3 +270,10 @@ the player and enters `Active` (`sprite->data[1] = 1`); when not visible, it sha
 `objectEvent->invisible` was set afterwards, so the sprite stayed visible (showing
 the follower's Pokémon sprite over an NPC). Now also set `gSprites[...].invisible = TRUE`
 after spawn and after `FollowerSetGraphics`.
+
+---
+
+## Fix: follower palette was black (wrong decompress fn)
+
+`LoadDynamicFollowerPalette` used the BIOS `LZ77UnCompWram`; FireRed decompresses
+mon palettes with `LZDecompressWram`. Switched to `LZDecompressWram`.

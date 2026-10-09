@@ -2214,7 +2214,7 @@ static u8 LoadDynamicFollowerPalette(u16 species, u8 form, bool32 shiny)
         spritePalette.data = gFollowerPalettes[species][shiny & 1];
 
     // Front-sprite palettes are LZ77 compressed
-    LZ77UnCompWram((u32 *)spritePalette.data, gDecompressionBuffer);
+    LZDecompressWram(spritePalette.data, gDecompressionBuffer);
     spritePalette.data = (void *)gDecompressionBuffer;
 
     paletteNum = LoadSpritePalette(&spritePalette);
