@@ -239,3 +239,17 @@ Ported the spawn logic and follow movement; wired the spawn hook into overworld.
 - Multiplayer link-room disable NOT yet wired (follower will show in link rooms).
 - 36 static encounters still use `sAnimTable_Standard` (should be `sAnimTable_Following`).
 - Interaction messages/emotions (`follower_helper.c`, `follower.inc`) not yet ported.
+
+---
+
+## ✅ PLAYTEST MILESTONE REACHED (Stage 4 part 2)
+
+A follower now spawns and follows the player. Flash `pokefirered_rev1.gba`
+(`make firered_rev1 -j$(nproc) COMPARE=0`) and walk around with a party: the first
+conscious Pokémon follows you using merrp's animated sprites.
+
+Known caveats (next chunks):
+1. Multiplayer link-room disable not wired (follower shows in link rooms).
+2. 36 static encounters use `sAnimTable_Standard` (should be `sAnimTable_Following`).
+3. Interaction messages/emotions (`follower_helper.c`, `follower.inc`) not ported.
+4. Advanced follow (dash/jump/transform/bob) not ported.
