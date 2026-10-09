@@ -326,3 +326,12 @@ All 35 static overworld Pokemon NPCs (Pikachu, Snorlax, Lugia, etc.) now match
 the 32x32 follower sprites: size/width/height 512/32/32, oam + subspriteTables
 32x32, and `sAnimTable_Following` (they previously kept 16x16/Standard, so a
 32x32 follower sprite was being drawn with a 16x16 OAM layout).
+
+## Fix: black follower on (first) spawn — palette slot starvation
+
+The overworld only has 4 free dynamic palette slots (OBJ_PALSLOT_COUNT..15;
+`gReservedSpritePaletteCount` is 12 after `InitObjectEventPalettes`). The old
+`FollowerSetGraphics` loaded the new species palette without releasing the old
+one, so slots filled up and `LoadSpritePalette` returned 0xFF (black). Now the
+old palette is freed first via a FireRed port of merrp's
+`FieldEffectFreePaletteIfUnused`, and weather tint is applied like merrp does.

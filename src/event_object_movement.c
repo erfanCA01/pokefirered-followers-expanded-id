@@ -2193,6 +2193,24 @@ EWRAM_DATA u16 gFollowerSpecies = SPECIES_NONE;
 EWRAM_DATA u8 gFollowerForm = 0;
 EWRAM_DATA bool8 gFollowerShiny = FALSE;
 
+// FireRed equivalent of merrp's FieldEffectFreePaletteIfUnused: frees a palette
+// slot if no active sprite is still using it. Used so the follower's old species
+// palette is released before loading the new one (there are only 4 dynamic
+// palette slots available on the overworld: OBJ_PALSLOT_COUNT..15).
+static void FreeSpritePaletteIfUnused(u8 paletteNum)
+{
+    u16 tag = GetSpritePaletteTagByPaletteNum(paletteNum);
+    int i;
+
+    if (tag != TAG_NONE)
+    {
+        for (i = 0; i < MAX_SPRITES; i++)
+            if (gSprites[i].inUse && gSprites[i].oam.paletteNum == paletteNum)
+                return;
+        FreeSpritePaletteByTag(tag);
+    }
+}
+
 static u8 LoadDynamicFollowerPalette(u16 species, u8 form, bool32 shiny)
 {
     u32 paletteNum;
@@ -2211,19 +2229,33 @@ static u8 LoadDynamicFollowerPalette(u16 species, u8 form, bool32 shiny)
     spritePalette.data = (void *)gDecompressionBuffer;
 
     paletteNum = LoadSpritePalette(&spritePalette);
+    if (paletteNum != 0xFF && GetCurrentWeather() != WEATHER_FOG_HORIZONTAL)
+        UpdateSpritePaletteWithWeather(paletteNum);
     return paletteNum;
 }
 
 static void FollowerSetGraphics(struct ObjectEvent *objEvent, u16 species, u8 form, bool8 shiny)
 {
     const struct ObjectEventGraphicsInfo *graphicsInfo = SpeciesToGraphicsInfo(species, form);
+    struct Sprite *sprite = &gSprites[objEvent->spriteId];
 
     gFollowerSpecies = species;
     gFollowerForm = form;
     gFollowerShiny = shiny;
     ObjectEventSetGraphicsId(objEvent, OBJ_EVENT_GFX_FOLLOWER);
     if (graphicsInfo->paletteTag == OBJ_EVENT_PAL_TAG_DYNAMIC)
-        gSprites[objEvent->spriteId].oam.paletteNum = LoadDynamicFollowerPalette(species, form, shiny);
+    {
+        // Release the follower's old palette slot if otherwise unused, so the new
+        // species palette has a free dynamic slot to load into.
+        sprite->inUse = FALSE;
+        FreeSpritePaletteIfUnused(sprite->oam.paletteNum);
+        sprite->inUse = TRUE;
+        sprite->oam.paletteNum = LoadDynamicFollowerPalette(species, form, shiny);
+    }
+    else if (GetCurrentWeather() != WEATHER_FOG_HORIZONTAL)
+    {
+        UpdateSpritePaletteWithWeather(sprite->oam.paletteNum);
+    }
 }
 
 void UpdateFollowingPokemon(void)
