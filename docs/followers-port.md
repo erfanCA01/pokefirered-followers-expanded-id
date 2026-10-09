@@ -319,3 +319,10 @@ Reverted `graphicsId` u16→u8 and `spriteId` back to vanilla layout (no shiny b
 `MovementType_FollowPlayer_Active` set `objectEvent->invisible` but not
 `sprite->invisible`, so the follower stayed visible when walking through a door.
 Now syncs the sprite.
+
+## Fix: static-encounter NPCs were "blocky" (16x16 mis-sized)
+
+All 35 static overworld Pokemon NPCs (Pikachu, Snorlax, Lugia, etc.) now match
+the 32x32 follower sprites: size/width/height 512/32/32, oam + subspriteTables
+32x32, and `sAnimTable_Following` (they previously kept 16x16/Standard, so a
+32x32 follower sprite was being drawn with a 16x16 OAM layout).
