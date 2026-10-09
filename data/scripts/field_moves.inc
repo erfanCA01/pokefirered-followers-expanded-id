@@ -11,6 +11,8 @@ EventScript_CutTree::
 	goto_if_eq VAR_RESULT, NO, EventScript_DontCutTree
 	msgbox Text_MonUsedMove
 	closemessage
+	callnative ScrFunc_IsFollowerFieldMoveUser
+	.2byte VAR_0x8004
 	dofieldeffect FLDEFF_USE_CUT_ON_TREE
 	waitstate
 	goto EventScript_CutTreeDown
@@ -24,6 +26,8 @@ EventScript_FldEffCut::
 	end
 
 EventScript_CutTreeDown::
+	setflag FLAG_SAFE_FOLLOWER_MOVEMENT
+	call_if_eq VAR_0x8004, TRUE, EventScript_FollowerFieldMove
 	applymovement VAR_LAST_TALKED, Movement_CutTreeDown
 	waitmovement 0
 	removeobject VAR_LAST_TALKED

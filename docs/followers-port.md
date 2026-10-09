@@ -383,3 +383,17 @@ curious/music/poisoned).
   is a valid emotion (the normal question mark sets it to -1).
 - Added `ObjectEventEmote` + `ScrFunc_emote`; `ScrFunc_getfolloweraction` now
   calls `ObjectEventEmote`.
+
+## Feature: follower helps with field moves (Cut)
+
+Ported merrp's field-move follower logic: `ScrFunc_IsFollowerFieldMoveUser` and
+`ScrFunc_GetDirectionToFace` (sets whether the follower is the field-move user /
+the direction to face), plus the `EventScript_FollowerFieldMove` swap+jump
+scripts and the walk/jump movement scripts. Wired into the Cut field-move script
+(`EventScript_CutTree`): if the follower is the move user, it swaps with the
+player and jumps toward the tree.
+
+Deferred: Rock Smash/Dig/Strength wiring, the field-effect "skip pose" argument
+(arg 3), the `enter_pokeball` collision handling in `script_movement.c` (FireRed
+lacks the `enter_pokeball` movement action), and full scripted-movement
+mirroring of the player onto the follower.
