@@ -75,3 +75,49 @@ tables (`sPicTable_*`, `sOamTables_*`, `sAnimTable_Following`, palettes) +
 `SpeciesToGraphicsInfo` / `gPokemonObjectGraphics` / `gCastformObjectGraphics`
 / `gFollowerPalettes`. `GetObjectEventGraphicsInfo` will gain its
 `OBJ_EVENT_GFX_MON_BASE` branch then.
+
+---
+
+## Progress summary (after Stage 2)
+
+### Completed & pushed
+- **Stage 1 (Chunk 1)** `3ea16338b` — widen `graphicsId` to u16 + follower macros (size-neutral).
+- **Stage 2 (Chunk 2)** `afe556856` — widen object-event graphicsId API to u16.
+- Both stages build clean (`make firered_rev1 -j$(nproc) COMPARE=0` → exit 0); save sizes unchanged.
+
+### Next — Stage 3 (asset-heavy)
+Follower graphics info table + sprite assets:
+1. Copy 386+ OW sprites `graphics/object_events/pics/pokemon/*.png` from merrp.
+2. Add `graphics_file_rules.mk` entries; generate `sPicTable_*` / `sOamTables_*` / `sAnimTable_Following` (gbagfx).
+3. Port `src/data/object_events/object_event_graphics_info_followers.h` (`gPokemonObjectGraphics`, `gCastformObjectGraphics`, `gFollowerPalettes`).
+4. Add `SpeciesToGraphicsInfo` + `OBJ_EVENT_GFX_MON_BASE` branch in `GetObjectEventGraphicsInfo` + `SPECIES_SHINY_TAG` in `species.h`.
+
+### Later stages
+- Core engine: `follower_helper.h/.c`, `event_object_movement.c` follower functions, `field_player_avatar.c` spawn/despawn, `overworld.c`/`load_save.c` respawn hooks.
+- Scripts + maps: `follower.inc`, script-cmd table, per-map follower events.
+- Field-move/battle hooks: `field_effect_helpers.c`, `scrcmd.c`, `script_movement.c`, battle return-to-field.
+- Multiplayer link-room disable (honored throughout).
+
+---
+
+## Stage 3 — Part 1: follower sprite assets + build rules ✅ DONE
+
+Imported the follower OW sprite assets and their build rules from merrp.
+
+### What changed
+- Copied 385 new follower OW sprites to `graphics/object_events/pics/pokemon/`
+  (`cp -n`, so FireRed's existing 29 static-encounter sprites are preserved).
+- Removed 16 stray `*_old.png` static-encounter backups (not needed — FireRed keeps
+  its own static sprites).
+- Appended 393 new `$(OBJEVENTGFXDIR)/pokemon/*.4bpp` rules to
+  `spritesheet_rules.mk` (skipping `_old` and existing-species rules).
+
+### Note (dormant assets)
+The sprites are not yet referenced by any `INCBIN`/pic table, so the build
+correctly reports nothing to do. They become active once the data files are added:
+`object_event_graphics.h` (INCBIN `gObjectEventPic_*`), `object_event_pic_tables.h`
+(`sPicTable_*`), `object_event_anims.h` (`sAnimTable_Following`),
+`object_event_graphics_info_followers.h` (`gPokemonObjectGraphics` / `gCastformObjectGraphics`
+/ `gFollowerPalettes`), plus the code wiring (`SpeciesToGraphicsInfo`,
+`GetObjectEventGraphicsInfo` `OBJ_EVENT_GFX_MON_BASE` branch, `SPECIES_SHINY_TAG`,
+local `OBJ_EVENT_PAL_TAG_DYNAMIC/SUBSTITUTE/NONE` palette tags).
