@@ -6,6 +6,8 @@
 #include "field_control_avatar.h"
 #include "field_effect.h"
 #include "field_effect_helpers.h"
+#include "field_weather.h"
+#include "constants/weather.h"
 #include "field_player_avatar.h"
 #include "fieldmap.h"
 #include "metatile_behavior.h"
@@ -1518,7 +1520,7 @@ static bool8 GetAvailableObjectEventId(u16 localId, u8 mapNum, u8 mapGroup, u8 *
     return FALSE;
 }
 
-static void RemoveObjectEvent(struct ObjectEvent *objectEvent)
+void RemoveObjectEvent(struct ObjectEvent *objectEvent)
 {
     objectEvent->active = FALSE;
     RemoveObjectEventInternal(objectEvent);
@@ -2093,6 +2095,104 @@ const struct ObjectEventGraphicsInfo *GetObjectEventGraphicsInfo(u16 graphicsId)
         graphicsId = OBJ_EVENT_GFX_LITTLE_BOY;
 
     return gObjectEventGraphicsInfoPointers[graphicsId];
+}
+
+struct Pokemon *GetFirstLiveMon(void)
+{
+    u32 i;
+
+    for (i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+        if ((OW_MON_ALLOWED_SPECIES && GetMonData(mon, MON_DATA_SPECIES_OR_EGG) != VarGet(OW_MON_ALLOWED_SPECIES))
+            || (OW_MON_ALLOWED_MET_LVL && GetMonData(mon, MON_DATA_MET_LEVEL) != VarGet(OW_MON_ALLOWED_MET_LVL))
+            || (OW_MON_ALLOWED_MET_LOC && GetMonData(mon, MON_DATA_MET_LOCATION) != VarGet(OW_MON_ALLOWED_MET_LOC)))
+        {
+            continue;
+        }
+        if (gPlayerParty[i].hp > 0 && !(gPlayerParty[i].box.isEgg || gPlayerParty[i].box.isBadEgg))
+            return &gPlayerParty[i];
+    }
+    return NULL;
+}
+
+struct ObjectEvent *GetFollowerObject(void)
+{
+    u32 i;
+
+    for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
+    {
+        if (gObjectEvents[i].localId == OBJ_EVENT_ID_FOLLOWER && gObjectEvents[i].active)
+            return &gObjectEvents[i];
+    }
+    return NULL;
+}
+
+static u8 GetOverworldCastformForm(void)
+{
+    switch (GetCurrentWeather())
+    {
+    case WEATHER_SUNNY_CLOUDS:
+    case WEATHER_DROUGHT:
+        return CASTFORM_FIRE;
+    case WEATHER_RAIN:
+    case WEATHER_RAIN_THUNDERSTORM:
+    case WEATHER_DOWNPOUR:
+        return CASTFORM_WATER;
+    case WEATHER_SNOW:
+        return CASTFORM_ICE;
+    }
+    return CASTFORM_NORMAL;
+}
+
+static bool8 GetMonInfo(struct Pokemon *mon, u16 *species, u8 *form, u8 *shiny)
+{
+    if (!mon)
+    {
+        *species = SPECIES_NONE;
+        *form = 0;
+        *shiny = 0;
+        return FALSE;
+    }
+    *species = GetMonData(mon, MON_DATA_SPECIES);
+    *shiny = IsMonShiny(mon);
+    *form = 0;
+    switch (*species)
+    {
+    case SPECIES_UNOWN:
+        *form = GET_UNOWN_LETTER(mon->box.personality);
+        break;
+    case SPECIES_CASTFORM:
+        *form = GetOverworldCastformForm();
+        break;
+    }
+    return TRUE;
+}
+
+static bool8 GetFollowerInfo(u16 *species, u8 *form, u8 *shiny)
+{
+    return GetMonInfo(GetFirstLiveMon(), species, form, shiny);
+}
+
+static bool32 IsFollowerVisible(void)
+{
+    return !(TestPlayerAvatarFlags(FOLLOWER_INVISIBLE_FLAGS)
+        || MetatileBehavior_IsSurfable(gObjectEvents[gPlayerAvatar.objectEventId].previousMetatileBehavior)
+        || MetatileBehavior_IsForcedMovementTile(gObjectEvents[gPlayerAvatar.objectEventId].currentMetatileBehavior));
+}
+
+void RemoveFollowingPokemon(void)
+{
+    struct ObjectEvent *objectEvent = GetFollowerObject();
+
+    if (objectEvent == NULL)
+        return;
+    RemoveObjectEvent(objectEvent);
+}
+
+static bool8 SpeciesHasType(u16 species, u8 type)
+{
+    return gSpeciesInfo[species].types[0] == type || gSpeciesInfo[species].types[1] == type;
 }
 
 static void SetObjectEventDynamicGraphicsId(struct ObjectEvent *objectEvent)

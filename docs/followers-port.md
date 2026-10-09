@@ -196,3 +196,12 @@ Next (part 2): port the follower engine functions (`GetFollowerObject`, `GetFirs
 `GetMonInfo`, `LoadDynamicFollowerPalette`, `FollowerSetGraphics`, `UpdateFollowingPokemon`,
 `RemoveFollowingPokemon`, `MovementType_FollowPlayer` + movement funcs, `follower_helper.c`,
 spawn hook in `overworld.c`/`field_player_avatar.c`).
+
+---
+
+## Stage 4 — Part 2 (Layer A1): follower helper functions ✅
+
+Ported `GetFirstLiveMon`, `GetFollowerObject`, `GetOverworldCastformForm`, `GetMonInfo`,
+`GetFollowerInfo`, `IsFollowerVisible`, `RemoveFollowingPokemon`, `SpeciesHasType`.
+Made `RemoveObjectEvent` public. Added `field_weather.h`/`constants/weather.h` includes.
+Adaptations: `MetatileBehavior_IsSurfableWaterOrUnderwater` → `MetatileBehavior_IsSurfable`.
