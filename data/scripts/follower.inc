@@ -10,6 +10,7 @@ EventScript_FollowerEnd::
 
 EventScript_FollowerGeneric::
 	faceplayer
+	waitfieldeffect FLDEFF_QUESTION_MARK_ICON
 	message 0x0
 	waitmessage
 	waitbuttonpress

@@ -368,3 +368,18 @@ resolves its script pointer to `EventScript_Follower` in
 Scope note: this is the core "talk" interaction. The visual emotion icons
 (FLDEFF_EMOTE) and merrp's Emerald-specific conditional messages (map/song
 conditions) are not ported yet.
+
+## Feature: follower emotion icons (visual emote)
+
+Talking to the follower now also shows an emotion icon above its head, using
+the follower's emotion (happy/neutral/sad/upset/angry/pensive/love/surprise/
+curious/music/poisoned).
+
+- Ported `graphics/misc/emotes.png`/`emotes.pal` -> `emotes.4bpp`/`emotes.gbapal`.
+- Added `gObjectEventPaletteEmotes` + `OBJ_EVENT_PAL_TAG_EMOTES (0x8002)` and
+  registered it in `sObjectEventSpritePalettes`.
+- Added the emote sprite template/anim table to `trainer_see.c` and made
+  `FldEff_QuestionMarkIcon` render the emotion icon when `gFieldEffectArguments[7]`
+  is a valid emotion (the normal question mark sets it to -1).
+- Added `ObjectEventEmote` + `ScrFunc_emote`; `ScrFunc_getfolloweraction` now
+  calls `ObjectEventEmote`.

@@ -626,6 +626,8 @@ const u16 gObjectEventPal_Lugia[] = INCBIN_U16("graphics/object_events/palettes/
 
 const u16 gObjectEventPal_Substitute[] = INCBIN_U16("graphics/object_events/pics/pokemon/substitute.gbapal");
 
+const u16 gObjectEventPaletteEmotes[] = INCBIN_U16("graphics/misc/emotes.gbapal");
+
 
 #if OW_MON_POKEBALLS
 // Vanilla

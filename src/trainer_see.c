@@ -1,6 +1,7 @@
 #include "global.h"
 #include "battle_setup.h"
 #include "event_object_movement.h"
+#include "follower_helper.h"
 #include "field_effect.h"
 #include "field_player_avatar.h"
 #include "quest_log.h"
@@ -654,6 +655,81 @@ static const struct SpriteTemplate sSpriteTemplate_Emoticons = {
     .callback = SpriteCB_TrainerIcons
 };
 
+#define OBJ_EVENT_PAL_TAG_EMOTES 0x8002
+
+static const u8 sEmotion_Gfx[] = INCBIN_U8("graphics/misc/emotes.4bpp");
+
+static const struct SpriteFrameImage sSpriteImageTable_Emotes[] =
+{
+    overworld_frame(sEmotion_Gfx, 2, 2, 0),
+    overworld_frame(sEmotion_Gfx, 2, 2, 1),
+    overworld_frame(sEmotion_Gfx, 2, 2, 2),
+    overworld_frame(sEmotion_Gfx, 2, 2, 3),
+    overworld_frame(sEmotion_Gfx, 2, 2, 4),
+    overworld_frame(sEmotion_Gfx, 2, 2, 5),
+    overworld_frame(sEmotion_Gfx, 2, 2, 6),
+    overworld_frame(sEmotion_Gfx, 2, 2, 7),
+    overworld_frame(sEmotion_Gfx, 2, 2, 8),
+    overworld_frame(sEmotion_Gfx, 2, 2, 9),
+    overworld_frame(sEmotion_Gfx, 2, 2, 10),
+    overworld_frame(sEmotion_Gfx, 2, 2, 11),
+    overworld_frame(sEmotion_Gfx, 2, 2, 12),
+    overworld_frame(sEmotion_Gfx, 2, 2, 13),
+    overworld_frame(sEmotion_Gfx, 2, 2, 14),
+    overworld_frame(sEmotion_Gfx, 2, 2, 15),
+    overworld_frame(sEmotion_Gfx, 2, 2, 16),
+    overworld_frame(sEmotion_Gfx, 2, 2, 17),
+    overworld_frame(sEmotion_Gfx, 2, 2, 18),
+    overworld_frame(sEmotion_Gfx, 2, 2, 19),
+    overworld_frame(sEmotion_Gfx, 2, 2, 20),
+    overworld_frame(sEmotion_Gfx, 2, 2, 21),
+};
+
+#define EMOTE_ANIM(n)                                       \
+    {                                                       \
+        ANIMCMD_FRAME((n) * 2, 30),                         \
+        ANIMCMD_FRAME((n) * 2 + 1, 25),                     \
+        ANIMCMD_FRAME((n) * 2, 30),                         \
+        ANIMCMD_END                                         \
+    }
+
+static const union AnimCmd sSpriteAnim_Emotes0[] = EMOTE_ANIM(0);
+static const union AnimCmd sSpriteAnim_Emotes1[] = EMOTE_ANIM(1);
+static const union AnimCmd sSpriteAnim_Emotes2[] = EMOTE_ANIM(2);
+static const union AnimCmd sSpriteAnim_Emotes3[] = EMOTE_ANIM(3);
+static const union AnimCmd sSpriteAnim_Emotes4[] = EMOTE_ANIM(4);
+static const union AnimCmd sSpriteAnim_Emotes5[] = EMOTE_ANIM(5);
+static const union AnimCmd sSpriteAnim_Emotes6[] = EMOTE_ANIM(6);
+static const union AnimCmd sSpriteAnim_Emotes7[] = EMOTE_ANIM(7);
+static const union AnimCmd sSpriteAnim_Emotes8[] = EMOTE_ANIM(8);
+static const union AnimCmd sSpriteAnim_Emotes9[] = EMOTE_ANIM(9);
+static const union AnimCmd sSpriteAnim_Emotes10[] = EMOTE_ANIM(10);
+
+static const union AnimCmd *const sSpriteAnimTable_Emotes[] =
+{
+    sSpriteAnim_Emotes0,
+    sSpriteAnim_Emotes1,
+    sSpriteAnim_Emotes2,
+    sSpriteAnim_Emotes3,
+    sSpriteAnim_Emotes4,
+    sSpriteAnim_Emotes5,
+    sSpriteAnim_Emotes6,
+    sSpriteAnim_Emotes7,
+    sSpriteAnim_Emotes8,
+    sSpriteAnim_Emotes9,
+    sSpriteAnim_Emotes10,
+};
+
+static const struct SpriteTemplate sSpriteTemplate_Emote = {
+    .tileTag = 0xFFFF,
+    .paletteTag = OBJ_EVENT_PAL_TAG_EMOTES,
+    .oam = &sOamData_Emoticons,
+    .anims = sSpriteAnimTable_Emotes,
+    .images = sSpriteImageTable_Emotes,
+    .affineAnims = gDummySpriteAffineAnimTable,
+    .callback = SpriteCB_TrainerIcons
+};
+
 u8 FldEff_ExclamationMarkIcon1(void)
 {
     u8 spriteId = CreateSpriteAtEnd(&sSpriteTemplate_Emoticons, 0, 0, 0x53);
@@ -696,7 +772,19 @@ u8 FldEff_SmileyFaceIcon(void)
 
 u8 FldEff_QuestionMarkIcon(void)
 {
-    u8 spriteId = CreateSpriteAtEnd(&sSpriteTemplate_Emoticons, 0, 0, 0x52);
+    u8 spriteId;
+
+    if (gFieldEffectArguments[7] < FOLLOWER_EMOTION_LENGTH)
+    {
+        // Follower emotion icon
+        u8 emotion = gFieldEffectArguments[7];
+        spriteId = CreateSpriteAtEnd(&sSpriteTemplate_Emote, 0, 0, 0x52);
+        if (spriteId != MAX_SPRITES)
+            SetIconSpriteData(&gSprites[spriteId], FLDEFF_QUESTION_MARK_ICON, emotion);
+        return 0;
+    }
+
+    spriteId = CreateSpriteAtEnd(&sSpriteTemplate_Emoticons, 0, 0, 0x52);
 
     if (spriteId != MAX_SPRITES)
         SetIconSpriteData(&gSprites[spriteId], FLDEFF_QUESTION_MARK_ICON, 4);

@@ -482,6 +482,7 @@ static const u8 gInitialMovementTypeFacingDirections[MOVEMENT_TYPES_COUNT] = {
 #define OBJ_EVENT_PAL_TAG_NONE                        0x11FF
 #define OBJ_EVENT_PAL_TAG_DYNAMIC                 0x1124
 #define OBJ_EVENT_PAL_TAG_SUBSTITUTE              0x7611
+#define OBJ_EVENT_PAL_TAG_EMOTES                  0x8002
 #define OBJ_EVENT_PAL_TAG_WHITE                   (OBJ_EVENT_PAL_TAG_NONE - 1)
 #define OBJ_EVENT_PAL_TAG_CASTFORM_SUNNY          0x1125
 #define OBJ_EVENT_PAL_TAG_CASTFORM_RAINY          0x1126
@@ -515,6 +516,7 @@ static const struct SpritePalette sObjectEventSpritePalettes[] = {
     {gObjectEventPal_Meteorite,               OBJ_EVENT_PAL_TAG_METEORITE},
     {gObjectEventPal_SSAnne,                  OBJ_EVENT_PAL_TAG_SS_ANNE},
     {gObjectEventPal_Seagallop,               OBJ_EVENT_PAL_TAG_SEAGALLOP},
+    {gObjectEventPaletteEmotes,               OBJ_EVENT_PAL_TAG_EMOTES},
     {},
 };
 
@@ -2193,6 +2195,27 @@ static bool8 SpeciesHasType(u16 species, u8 type)
     return gSpeciesInfo[species].types[0] == type || gSpeciesInfo[species].types[1] == type;
 }
 
+// Show an emotion icon above an object event. Reuses the question-mark icon
+// field effect slot: gFieldEffectArguments[7] carries the emotion index.
+static void ObjectEventEmote(struct ObjectEvent *objEvent, u8 emotion)
+{
+    emotion %= FOLLOWER_EMOTION_LENGTH;
+    ObjectEventGetLocalIdAndMap(objEvent, &gFieldEffectArguments[0], &gFieldEffectArguments[1], &gFieldEffectArguments[2]);
+    gFieldEffectArguments[7] = emotion;
+    LoadObjectEventPalette(OBJ_EVENT_PAL_TAG_EMOTES);
+    FieldEffectStart(FLDEFF_QUESTION_MARK_ICON);
+}
+
+bool8 ScrFunc_emote(struct ScriptContext *ctx)
+{
+    u8 localId = ScriptReadByte(ctx);
+    u8 emotion = ScriptReadByte(ctx) % FOLLOWER_EMOTION_LENGTH;
+    u8 i = GetObjectEventIdByLocalId(localId);
+    if (i < OBJECT_EVENTS_COUNT)
+        ObjectEventEmote(&gObjectEvents[i], emotion);
+    return FALSE;
+}
+
 // Picks an emotion (weighted by friendship/HP/status), then picks a random
 // basic message for that emotion and dispatches to its script. The message
 // pointer is left in ctx->data[0] so the script's `message 0x0` shows it.
@@ -2200,6 +2223,7 @@ bool8 ScrFunc_getfolloweraction(struct ScriptContext *ctx)
 {
     u32 emotion;
     u32 multi;
+    struct ObjectEvent *objEvent = GetFollowerObject();
     struct Pokemon *mon = GetFirstLiveMon();
     u8 emotionWeight[FOLLOWER_EMOTION_LENGTH] = {
         [FOLLOWER_EMOTION_HAPPY] = 10,
@@ -2245,6 +2269,8 @@ bool8 ScrFunc_getfolloweraction(struct ScriptContext *ctx)
     // Poisoned override
     if (mon->status & STATUS1_PSN_ANY)
         emotion = FOLLOWER_EMOTION_POISONED;
+
+    ObjectEventEmote(objEvent, emotion);
 
     multi = Random() % gFollowerBasicMessages[emotion].length;
     ctx->data[0] = (u32) gFollowerBasicMessages[emotion].messages[multi].text;
@@ -7604,6 +7630,7 @@ static bool8 MovementAction_EmoteExclamationMark_Step0(struct ObjectEvent *objec
 static bool8 MovementAction_EmoteQuestionMark_Step0(struct ObjectEvent *objectEvent, struct Sprite *sprite)
 {
     ObjectEventGetLocalIdAndMap(objectEvent, &gFieldEffectArguments[0], &gFieldEffectArguments[1], &gFieldEffectArguments[2]);
+    gFieldEffectArguments[7] = (u32)-1;
     FieldEffectStart(FLDEFF_QUESTION_MARK_ICON);
     sprite->data[2] = 1;
     return TRUE;
