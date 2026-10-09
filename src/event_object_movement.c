@@ -1966,7 +1966,7 @@ static void SetPlayerAvatarObjectEventIdAndObjectId(u8 objectEventId, u8 spriteI
     SetPlayerAvatarExtraStateTransition(gObjectEvents[objectEventId].graphicsId, PLAYER_AVATAR_FLAG_CONTROLLABLE);
 }
 
-void ObjectEventSetGraphicsId(struct ObjectEvent *objectEvent, u16 graphicsId)
+void ObjectEventSetGraphicsId(struct ObjectEvent *objectEvent, u8 graphicsId)
 {
     const struct ObjectEventGraphicsInfo *graphicsInfo;
     struct Sprite *sprite;
@@ -2016,7 +2016,7 @@ void ObjectEventSetGraphicsId(struct ObjectEvent *objectEvent, u16 graphicsId)
     }
 }
 
-void ObjectEventSetGraphicsIdByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroup, u16 graphicsId)
+void ObjectEventSetGraphicsIdByLocalIdAndMap(u8 localId, u8 mapNum, u8 mapGroup, u8 graphicsId)
 {
     u8 objectEventId;
 
@@ -2077,24 +2077,13 @@ static const struct ObjectEventGraphicsInfo *SpeciesToGraphicsInfo(u16 species, 
         return graphicsInfo;
 }
 
-const struct ObjectEventGraphicsInfo *GetObjectEventGraphicsInfo(u16 graphicsId)
+const struct ObjectEventGraphicsInfo *GetObjectEventGraphicsInfo(u8 graphicsId)
 {
-    u32 form = 0;
-
     if (graphicsId >= OBJ_EVENT_GFX_VARS && graphicsId <= OBJ_EVENT_GFX_VAR_F)
         graphicsId = VarGetObjectEventGraphicsId(graphicsId - OBJ_EVENT_GFX_VARS);
 
-    // graphicsId may contain mon form info
-    if (graphicsId > OBJ_EVENT_GFX_SPECIES_MASK)
-    {
-        form = graphicsId >> OBJ_EVENT_GFX_SPECIES_BITS;
-        graphicsId = graphicsId & OBJ_EVENT_GFX_SPECIES_MASK;
-    }
-    if (graphicsId >= OBJ_EVENT_GFX_MON_BASE + SPECIES_SHINY_TAG)
-        graphicsId -= SPECIES_SHINY_TAG;
-
-    if (graphicsId >= OBJ_EVENT_GFX_MON_BASE)
-        return SpeciesToGraphicsInfo(graphicsId - OBJ_EVENT_GFX_MON_BASE, form);
+    if (graphicsId == OBJ_EVENT_GFX_FOLLOWER)
+        return SpeciesToGraphicsInfo(gFollowerSpecies, gFollowerForm);
 
     if (graphicsId >= NUM_OBJ_EVENT_GFX)
         graphicsId = OBJ_EVENT_GFX_LITTLE_BOY;
@@ -2200,6 +2189,10 @@ static bool8 SpeciesHasType(u16 species, u8 type)
     return gSpeciesInfo[species].types[0] == type || gSpeciesInfo[species].types[1] == type;
 }
 
+EWRAM_DATA u16 gFollowerSpecies = SPECIES_NONE;
+EWRAM_DATA u8 gFollowerForm = 0;
+EWRAM_DATA bool8 gFollowerShiny = FALSE;
+
 static u8 LoadDynamicFollowerPalette(u16 species, u8 form, bool32 shiny)
 {
     u32 paletteNum;
@@ -2223,12 +2216,12 @@ static u8 LoadDynamicFollowerPalette(u16 species, u8 form, bool32 shiny)
 
 static void FollowerSetGraphics(struct ObjectEvent *objEvent, u16 species, u8 form, bool8 shiny)
 {
-    u16 graphicsId = (OBJ_EVENT_GFX_MON_BASE + species) & OBJ_EVENT_GFX_SPECIES_MASK;
     const struct ObjectEventGraphicsInfo *graphicsInfo = SpeciesToGraphicsInfo(species, form);
 
-    graphicsId |= form << OBJ_EVENT_GFX_SPECIES_BITS;
-    ObjectEventSetGraphicsId(objEvent, graphicsId);
-    objEvent->shiny = shiny;
+    gFollowerSpecies = species;
+    gFollowerForm = form;
+    gFollowerShiny = shiny;
+    ObjectEventSetGraphicsId(objEvent, OBJ_EVENT_GFX_FOLLOWER);
     if (graphicsInfo->paletteTag == OBJ_EVENT_PAL_TAG_DYNAMIC)
         gSprites[objEvent->spriteId].oam.paletteNum = LoadDynamicFollowerPalette(species, form, shiny);
 }
@@ -2254,7 +2247,7 @@ void UpdateFollowingPokemon(void)
         u32 objId = gPlayerAvatar.objectEventId;
         struct ObjectEventTemplate template = {0};
         template.localId = OBJ_EVENT_ID_FOLLOWER;
-        template.graphicsId = OBJ_EVENT_GFX_MON_BASE + species;
+        template.graphicsId = OBJ_EVENT_GFX_FOLLOWER;
         template.x = gSaveBlock1Ptr->pos.x;
         template.y = gSaveBlock1Ptr->pos.y;
         template.objUnion.normal.elevation = gObjectEvents[objId].active ? gObjectEvents[objId].currentElevation : 3;
@@ -2267,7 +2260,7 @@ void UpdateFollowingPokemon(void)
         gSprites[objEvent->spriteId].invisible = TRUE;
     }
     sprite = &gSprites[objEvent->spriteId];
-    if (species != OW_SPECIES(objEvent) || shiny != objEvent->shiny || form != OW_FORM(objEvent))
+    if (species != gFollowerSpecies || shiny != gFollowerShiny || form != gFollowerForm)
     {
         MoveObjectEventToMapCoords(objEvent, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.x, gObjectEvents[gPlayerAvatar.objectEventId].currentCoords.y);
         FollowerSetGraphics(objEvent, species, form, shiny);

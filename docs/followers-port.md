@@ -295,3 +295,19 @@ map load (which is why NPCs recover after a map transition), but `load_save.c` r
 **Planned fix:** re-sync the restored object-event `graphicsId`/`spriteId` from the ROM
 map templates on load (or migrate the save fields), keeping the on-disk layout identical
 to vanilla. To be truly interchangeable, the save layout must not diverge.
+
+---
+
+## ✅ Vanilla save compatibility achieved (rework)
+
+Reverted `graphicsId` u16→u8 and `spriteId` back to vanilla layout (no shiny bit in
+`ObjectEvent`), so the on-disk save layout is byte-identical to vanilla FireRed.
+`gSaveBlock1` confirmed = `0x3D68` (vanilla).
+
+- Follower species/form/shiny now stored in runtime globals `gFollowerSpecies`/
+  `gFollowerForm`/`gFollowerShiny` (EWRAM, re-derived on load — stateless).
+- Follower `graphicsId` is a placeholder `OBJ_EVENT_GFX_FOLLOWER 0xEF`; `GetObjectEventGraphicsInfo`
+  resolves it via `SpeciesToGraphicsInfo(gFollowerSpecies, gFollowerForm)`.
+- `OW_SPECIES`/`OW_FORM`/`IS_OW_MON_OBJ` macros redefined to use the globals.
+- API reverted: `GetObjectEventGraphicsInfo`, `ObjectEventSetGraphicsId`,
+  `VarGetObjectEventGraphicsId` back to u8.

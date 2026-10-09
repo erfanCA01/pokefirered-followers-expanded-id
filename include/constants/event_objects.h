@@ -189,11 +189,13 @@
 // Used to call a specific species' follower graphics. Useful for static encounters.
 #define OBJ_EVENT_GFX_SPECIES(name) (SPECIES_##name + OBJ_EVENT_GFX_MON_BASE)
 
-#define OW_SPECIES(x) (((x)->graphicsId & OBJ_EVENT_GFX_SPECIES_MASK) - OBJ_EVENT_GFX_MON_BASE)
-#define OW_FORM(x) ((x)->graphicsId >> OBJ_EVENT_GFX_SPECIES_BITS)
+#define OBJ_EVENT_GFX_FOLLOWER 0xEF
 
-// Whether an Object Event is an OW pokemon
-#define IS_OW_MON_OBJ(obj) ((obj)->graphicsId >= OBJ_EVENT_GFX_MON_BASE)
+#define OW_SPECIES(x) (gFollowerSpecies)
+#define OW_FORM(x) (gFollowerForm)
+
+// Whether an Object Event is the follower OW pokemon
+#define IS_OW_MON_OBJ(obj) ((obj)->graphicsId == OBJ_EVENT_GFX_FOLLOWER)
 
 // If true, follower pokemon will bob up and down during their idle & walking animations
 #define OW_MON_BOBBING  TRUE

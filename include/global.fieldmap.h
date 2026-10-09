@@ -107,10 +107,10 @@ struct BackupMapLayout
     u16 *map;
 };
 
-struct __attribute__((packed, aligned(4))) ObjectEventTemplate
+struct ObjectEventTemplate
 {
     u8 localId;
-    u16 graphicsId;
+    u8 graphicsId;
     u8 kind; // The "kind" field determines how to access objUnion union below.
     s16 x, y;
     union {
@@ -239,9 +239,8 @@ struct ObjectEvent
              /*25*/ u32 disableJumpLandingGroundEffect:1;
              /*26*/ u32 fixedPriority:1;
              /*27*/ u32 hideReflection:1;
-             /*28*/ u32 shiny:1; // OW mon shininess
-             /*29*/ u32 padding:3;
-    /*0x04*/        u16 graphicsId; // 11 bits for species; high 5 bits for form
+    /*0x04*/        u8 spriteId;
+    /*0x05*/        u8 graphicsId;
     /*0x06*/        u8 movementType;
     /*0x07*/        u8 trainerType;
     /*0x08*/        u8 localId;
@@ -265,7 +264,6 @@ struct ObjectEvent
     /*0x20*/        u8 previousMovementDirection;
     /*0x21*/        u8 directionSequenceIndex;
     /*0x22*/        u8 playerCopyableMovement;
-    /*0x23*/        u8 spriteId;
     /*size = 0x24*/
 };
 
