@@ -9,6 +9,7 @@
 #include "field_effect.h"
 #include "field_effect_helpers.h"
 #include "field_weather.h"
+#include "link.h"
 #include "constants/weather.h"
 #include "field_player_avatar.h"
 #include "fieldmap.h"
@@ -2267,6 +2268,7 @@ void UpdateFollowingPokemon(void)
     u8 form;
 
     if (!GetFollowerInfo(&species, &form, &shiny)
+        || gReceivedRemoteLinkPlayers
         || (gMapHeader.mapType == MAP_TYPE_INDOOR && SpeciesToGraphicsInfo(species, 0)->oam->size > SPRITE_SIZE(32x32))
         || FlagGet(FLAG_TEMP_HIDE_FOLLOWER))
     {

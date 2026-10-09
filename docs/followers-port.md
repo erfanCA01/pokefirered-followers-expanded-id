@@ -343,3 +343,11 @@ player speed, so it lagged behind when the player ran. Ported merrp's per-speed
 handlers and wired `gFollowPlayerMovementFuncs` to the full COPY_MOVE_* table:
 WALK_FAST -> GoSpeed1, WALK_FASTER -> GoSpeed2 (run), plus Slide/JumpInPlace/
 GoSpeed4 for ice and ledges.
+
+## Feature: follower disabled in multiplayer (link room)
+
+Follower is removed whenever a multiplayer session is active
+(`gReceivedRemoteLinkPlayers`), so it never conflicts with the link players'
+sprites. Also set `FLAG_TEMP_HIDE_FOLLOWER` on the Union Room map transition
+(matching merrp's script-based hide). TEMP flags auto-clear on the next map
+load, so the follower reappears after leaving the room.
