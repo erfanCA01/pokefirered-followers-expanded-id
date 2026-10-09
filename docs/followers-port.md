@@ -335,3 +335,11 @@ The overworld only has 4 free dynamic palette slots (OBJ_PALSLOT_COUNT..15;
 one, so slots filled up and `LoadSpritePalette` returned 0xFF (black). Now the
 old palette is freed first via a FireRed port of merrp's
 `FieldEffectFreePaletteIfUnused`, and weather tint is applied like merrp does.
+
+## Feature: run-speed follow (follower keeps up while running)
+
+The follower previously used `FollowablePlayerMovement_Step` (walk) for every
+player speed, so it lagged behind when the player ran. Ported merrp's per-speed
+handlers and wired `gFollowPlayerMovementFuncs` to the full COPY_MOVE_* table:
+WALK_FAST -> GoSpeed1, WALK_FASTER -> GoSpeed2 (run), plus Slide/JumpInPlace/
+GoSpeed4 for ice and ledges.

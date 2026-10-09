@@ -2364,16 +2364,94 @@ bool8 FollowablePlayerMovement_Step(struct ObjectEvent *objectEvent, struct Spri
     return TRUE;
 }
 
+bool8 FollowablePlayerMovement_GoSpeed1(struct ObjectEvent *objectEvent, struct Sprite *sprite, u8 playerDirection, bool8 tileCallback(u8))
+{
+    u32 direction;
+    s16 x, y;
+
+    direction = playerDirection;
+    direction = GetCopyDirection(gInitialMovementTypeFacingDirections[objectEvent->movementType], objectEvent->directionSequenceIndex, direction);
+    ObjectEventMoveDestCoords(objectEvent, direction, &x, &y);
+    ObjectEventSetSingleMovement(objectEvent, sprite, GetWalkFastMovementAction(direction));
+    if (GetCollisionAtCoords(objectEvent, x, y, direction) || (tileCallback != NULL && !tileCallback(MapGridGetMetatileBehaviorAt(x, y))))
+        ObjectEventSetSingleMovement(objectEvent, sprite, GetFaceDirectionMovementAction(direction));
+    objectEvent->singleMovementActive = TRUE;
+    sprite->data[1] = 2;
+    return TRUE;
+}
+
+bool8 FollowablePlayerMovement_GoSpeed2(struct ObjectEvent *objectEvent, struct Sprite *sprite, u8 playerDirection, bool8 tileCallback(u8))
+{
+    u32 direction;
+    s16 x, y;
+
+    direction = playerDirection;
+    direction = GetCopyDirection(gInitialMovementTypeFacingDirections[objectEvent->movementType], objectEvent->directionSequenceIndex, direction);
+    ObjectEventMoveDestCoords(objectEvent, direction, &x, &y);
+    ObjectEventSetSingleMovement(objectEvent, sprite, GetWalkFasterMovementAction(direction));
+    if (GetCollisionAtCoords(objectEvent, x, y, direction) || (tileCallback != NULL && !tileCallback(MapGridGetMetatileBehaviorAt(x, y))))
+        ObjectEventSetSingleMovement(objectEvent, sprite, GetFaceDirectionMovementAction(direction));
+    objectEvent->singleMovementActive = TRUE;
+    sprite->data[1] = 2;
+    return TRUE;
+}
+
+bool8 FollowablePlayerMovement_Slide(struct ObjectEvent *objectEvent, struct Sprite *sprite, u8 playerDirection, bool8 tileCallback(u8))
+{
+    u32 direction;
+    s16 x, y;
+
+    direction = playerDirection;
+    direction = GetCopyDirection(gInitialMovementTypeFacingDirections[objectEvent->movementType], objectEvent->directionSequenceIndex, direction);
+    ObjectEventMoveDestCoords(objectEvent, direction, &x, &y);
+    ObjectEventSetSingleMovement(objectEvent, sprite, GetSlideMovementAction(direction));
+    if (GetCollisionAtCoords(objectEvent, x, y, direction) || (tileCallback != NULL && !tileCallback(MapGridGetMetatileBehaviorAt(x, y))))
+        ObjectEventSetSingleMovement(objectEvent, sprite, GetFaceDirectionMovementAction(direction));
+    objectEvent->singleMovementActive = TRUE;
+    sprite->data[1] = 2;
+    return TRUE;
+}
+
+bool8 FollowablePlayerMovement_JumpInPlace(struct ObjectEvent *objectEvent, struct Sprite *sprite, u8 playerDirection, bool8 tileCallback(u8))
+{
+    u32 direction;
+
+    direction = playerDirection;
+    direction = GetCopyDirection(gInitialMovementTypeFacingDirections[objectEvent->movementType], objectEvent->directionSequenceIndex, direction);
+    ObjectEventSetSingleMovement(objectEvent, sprite, GetJumpInPlaceMovementAction(direction));
+    objectEvent->singleMovementActive = TRUE;
+    sprite->data[1] = 2;
+    return TRUE;
+}
+
+bool8 FollowablePlayerMovement_GoSpeed4(struct ObjectEvent *objectEvent, struct Sprite *sprite, u8 playerDirection, bool8 tileCallback(u8))
+{
+    u32 direction;
+    s16 x, y;
+
+    direction = playerDirection;
+    direction = GetCopyDirection(gInitialMovementTypeFacingDirections[objectEvent->movementType], objectEvent->directionSequenceIndex, direction);
+    ObjectEventMoveDestCoords(objectEvent, direction, &x, &y);
+    ObjectEventSetSingleMovement(objectEvent, sprite, GetJumpMovementAction(direction));
+    if (GetCollisionAtCoords(objectEvent, x, y, direction) || (tileCallback != NULL && !tileCallback(MapGridGetMetatileBehaviorAt(x, y))))
+        ObjectEventSetSingleMovement(objectEvent, sprite, GetFaceDirectionMovementAction(direction));
+    objectEvent->singleMovementActive = TRUE;
+    sprite->data[1] = 2;
+    return TRUE;
+}
+
 static bool8 (*const gFollowPlayerMovementFuncs[])(struct ObjectEvent *, struct Sprite *, u8, bool8(u8)) = {
-    FollowablePlayerMovement_Idle,
-    FollowablePlayerMovement_Idle,
-    FollowablePlayerMovement_Step,
-    FollowablePlayerMovement_Step,
-    FollowablePlayerMovement_Step,
-    FollowablePlayerMovement_Step,
-    FollowablePlayerMovement_Step,
-    FollowablePlayerMovement_Step,
-    FollowablePlayerMovement_Step,
+    FollowablePlayerMovement_Idle,        // COPY_MOVE_NONE
+    FollowablePlayerMovement_Idle,        // COPY_MOVE_FACE
+    FollowablePlayerMovement_Step,        // COPY_MOVE_WALK
+    FollowablePlayerMovement_GoSpeed1,    // COPY_MOVE_WALK_FAST
+    FollowablePlayerMovement_GoSpeed2,    // COPY_MOVE_WALK_FASTER
+    FollowablePlayerMovement_Slide,       // COPY_MOVE_SLIDE
+    FollowablePlayerMovement_JumpInPlace, // COPY_MOVE_JUMP_IN_PLACE
+    FollowablePlayerMovement_GoSpeed4,    // COPY_MOVE_JUMP
+    FollowablePlayerMovement_Step,        // COPY_MOVE_JUMP2
+    FollowablePlayerMovement_Idle,        // COPY_MOVE_EMPTY_1
+    FollowablePlayerMovement_Idle,        // COPY_MOVE_EMPTY_2
 };
 
 bool8 MovementType_FollowPlayer_Shadow(struct ObjectEvent *objectEvent, struct Sprite *sprite)
