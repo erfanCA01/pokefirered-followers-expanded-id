@@ -205,7 +205,7 @@
 #define LARGE_OW_SUPPORT TRUE
 
 // Followers will emerge from the pokeball they are stored in, instead of a normal pokeball
-#define OW_MON_POKEBALLS TRUE
+#define OW_MON_POKEBALLS FALSE
 
 // New/old handling for followers during scripts;
 // TRUE: Script collisions hide follower, FLAG_SAFE_FOLLOWER_MOVEMENT on by default

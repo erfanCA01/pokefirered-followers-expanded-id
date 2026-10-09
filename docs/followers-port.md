@@ -164,3 +164,22 @@ Ported the follower graphics data and animation commands. Build passes.
 - 36 static `gObjectEventGraphicsInfo_<Species>` entries still use `sAnimTable_Standard`
   (should be `sAnimTable_Following` to match the new 6-frame sprites).
 - Re-enable `OW_GFX_COMPRESS` + port `INCBIN_COMP` preprocessor change later.
+
+---
+
+## Stage 3 — Part 2c: follower graphics table wired (live) ✅ DONE
+
+- Added `SpeciesToGraphicsInfo` + `OBJ_EVENT_GFX_MON_BASE` branch in
+  `GetObjectEventGraphicsInfo`; follower `graphicsId`s (0x200+) now resolve.
+- Included `object_event_graphics_info_followers.h` (table is live/linked).
+- Added `OBJ_EVENT_PAL_TAG_CASTFORM_*` + subsprite-table aliases
+  (`sOamTables_*` → `gObjectEventSpriteOamTables_*`) + `gMonPalette_CircledQuestionMark`
+  externs (FireRed naming differs from Emerald).
+- Disabled `OW_MON_POKEBALLS` (ball feature deferred).
+
+### ⚠️ Remaining
+- 36 static `gObjectEventGraphicsInfo_<Species>` still use `sAnimTable_Standard`
+  (should be `sAnimTable_Following`).
+- `LoadDynamicFollowerPalette` (dynamic species palettes) — next chunk.
+- Follower spawn/despawn engine (field_player_avatar, event_object_movement follower
+  functions, follower_helper.c) — Stage 4.

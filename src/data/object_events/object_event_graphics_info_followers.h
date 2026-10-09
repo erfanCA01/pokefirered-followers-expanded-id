@@ -1,6 +1,15 @@
 // Set .compressed = OW_GFX_COMPRESS
 #define COMP OW_GFX_COMPRESS
 
+// FireRed uses a different subsprite-table naming scheme than Emerald
+#define sOamTables_16x32 gObjectEventSpriteOamTables_16x32
+#define sOamTables_32x32 gObjectEventSpriteOamTables_32x32
+#define sOamTables_48x48 gObjectEventSpriteOamTables_48x48
+#define sOamTables_64x64 gObjectEventSpriteOamTables_64x64
+
+extern const u32 gMonPalette_CircledQuestionMark[];
+extern const u32 gMonShinyPalette_CircledQuestionMark[];
+
 // Species-indexed pokemon object event table
 const struct ObjectEventGraphicsInfo gPokemonObjectGraphics[] = {
     // placeholder gfx, used when other gfx aren't found
