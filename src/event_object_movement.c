@@ -1,6 +1,8 @@
 #include "global.h"
 #include "gflib.h"
 #include "event_data.h"
+#include "data.h"
+#include "decompress.h"
 #include "event_object_movement.h"
 #include "field_camera.h"
 #include "field_control_avatar.h"
@@ -2193,6 +2195,39 @@ void RemoveFollowingPokemon(void)
 static bool8 SpeciesHasType(u16 species, u8 type)
 {
     return gSpeciesInfo[species].types[0] == type || gSpeciesInfo[species].types[1] == type;
+}
+
+static u8 LoadDynamicFollowerPalette(u16 species, u8 form, bool32 shiny)
+{
+    u32 paletteNum;
+    struct SpritePalette spritePalette = {.tag = shiny ? (species + SPECIES_SHINY_TAG) : species};
+
+    if ((paletteNum = IndexOfSpritePaletteTag(spritePalette.tag)) < 16)
+        return paletteNum;
+
+    // Use matching front sprite's normal/shiny palettes
+    spritePalette.data = (u16 *)((shiny ? gMonShinyPaletteTable : gMonPaletteTable)[species].data);
+    if (species < ARRAY_COUNT(gFollowerPalettes) && gFollowerPalettes[species][shiny & 1])
+        spritePalette.data = gFollowerPalettes[species][shiny & 1];
+
+    // Front-sprite palettes are LZ77 compressed
+    LZ77UnCompWram((u32 *)spritePalette.data, gDecompressionBuffer);
+    spritePalette.data = (void *)gDecompressionBuffer;
+
+    paletteNum = LoadSpritePalette(&spritePalette);
+    return paletteNum;
+}
+
+static void FollowerSetGraphics(struct ObjectEvent *objEvent, u16 species, u8 form, bool8 shiny)
+{
+    u16 graphicsId = (OBJ_EVENT_GFX_MON_BASE + species) & OBJ_EVENT_GFX_SPECIES_MASK;
+    const struct ObjectEventGraphicsInfo *graphicsInfo = SpeciesToGraphicsInfo(species, form);
+
+    graphicsId |= form << OBJ_EVENT_GFX_SPECIES_BITS;
+    ObjectEventSetGraphicsId(objEvent, graphicsId);
+    objEvent->shiny = shiny;
+    if (graphicsInfo->paletteTag == OBJ_EVENT_PAL_TAG_DYNAMIC)
+        gSprites[objEvent->spriteId].oam.paletteNum = LoadDynamicFollowerPalette(species, form, shiny);
 }
 
 static void SetObjectEventDynamicGraphicsId(struct ObjectEvent *objectEvent)

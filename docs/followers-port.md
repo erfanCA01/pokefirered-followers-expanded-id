@@ -205,3 +205,11 @@ Ported `GetFirstLiveMon`, `GetFollowerObject`, `GetOverworldCastformForm`, `GetM
 `GetFollowerInfo`, `IsFollowerVisible`, `RemoveFollowingPokemon`, `SpeciesHasType`.
 Made `RemoveObjectEvent` public. Added `field_weather.h`/`constants/weather.h` includes.
 Adaptations: `MetatileBehavior_IsSurfableWaterOrUnderwater` → `MetatileBehavior_IsSurfable`.
+
+---
+
+## Stage 4 — Part 2 (Layer A2): follower graphics/palette ✅
+
+Ported `LoadDynamicFollowerPalette` (LZ77 front-sprite palette, adapted for FireRed's
+`LZ77UnCompWram`) and `FollowerSetGraphics` (uses FireRed's `ObjectEventSetGraphicsId`
++ dynamic palette). Added `data.h`/`decompress.h` includes.
